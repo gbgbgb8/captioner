@@ -28,3 +28,22 @@ extractButton.addEventListener('click', async () => {
     statusDiv.innerHTML = `An error occurred while extracting audio:<br>${error.message}`;
   }
 });
+
+fileInput.addEventListener('change', () => {
+  statusDiv.textContent = '';
+});
+
+extractButton.addEventListener('click', () => {
+  if (!fileInput.files[0]) {
+    statusDiv.textContent = 'Please select a video file.';
+  }
+});
+
+function fetchFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
