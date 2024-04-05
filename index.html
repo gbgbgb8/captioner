@@ -15,7 +15,54 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.10/umd/ffmpeg.min.js"></script>
-  <script src="script.js"></script>
+  <script type="module">
+    import { createFFmpeg, fetchFile } from 'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.6/esm/ffmpeg-core.js';
+
+    const fileInput = document.getElementById('fileInput');
+    const extractButton = document.getElementById('extractButton');
+    const statusDiv = document.getElementById('status');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+
+    extractButton.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        statusDiv.textContent = 'Please select a video file.';
+        return;
+      }
+
+      statusDiv.textContent = 'Extracting audio...';
+      progressContainer.style.display = 'block';
+
+      try {
+        const ffmpeg = createFFmpeg({
+          log: true,
+          progress: (progress) => {
+            const percent = Math.floor(progress.ratio * 100);
+            progressBar.style.width = `${percent}%`;
+          },
+        });
+        await ffmpeg.load();
+
+        ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+
+        await ffmpeg.run('-i', file.name, '-vn', '-acodec', 'libmp3lame', 'extracted_audio.mp3');
+
+        const audioData = ffmpeg.FS('readFile', 'extracted_audio.mp3');
+        const audioUrl = URL.createObjectURL(new Blob([audioData.buffer], { type: 'audio/mp3' }));
+
+        statusDiv.innerHTML = `Audio extracted successfully. Download: <a href="${audioUrl}" download="extracted_audio.mp3">Download Audio</a>`;
+      } catch (error) {
+        console.error('Error:', error);
+        statusDiv.innerHTML = `An error occurred while extracting audio:<br>${error.message}`;
+      } finally {
+        progressContainer.style.display = 'none';
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      statusDiv.textContent = '';
+    });
+  </script>
 </body>
 </html>
