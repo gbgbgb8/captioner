@@ -12,7 +12,7 @@ extractButton.addEventListener('click', async () => {
   statusDiv.textContent = 'Extracting audio...';
 
   try {
-    const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+    const ffmpeg = createFFmpeg({ log: true });
     await ffmpeg.load();
 
     ffmpeg.FS('writeFile', file.name, await fetchFile(file));
@@ -28,12 +28,3 @@ extractButton.addEventListener('click', async () => {
     statusDiv.innerHTML = `An error occurred while extracting audio:<br>${error.message}`;
   }
 });
-
-function fetchFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(new Uint8Array(reader.result));
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
