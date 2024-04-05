@@ -11,35 +11,23 @@ extractButton.addEventListener('click', async () => {
 
   statusDiv.textContent = 'Extracting audio...';
 
-  const fileBuffer = await readFile(file);
-  const audioFileName = 'extracted_audio.mp3';
-
   try {
     const ffmpeg = FFmpeg.createFFmpeg({ log: true });
     await ffmpeg.load();
 
     ffmpeg.FS('writeFile', file.name, await fetchFile(file));
 
-    await ffmpeg.run('-i', file.name, '-vn', '-acodec', 'libmp3lame', audioFileName);
+    await ffmpeg.run('-i', file.name, '-vn', '-acodec', 'libmp3lame', 'extracted_audio.mp3');
 
-    const audioData = ffmpeg.FS('readFile', audioFileName);
+    const audioData = ffmpeg.FS('readFile', 'extracted_audio.mp3');
     const audioUrl = URL.createObjectURL(new Blob([audioData.buffer], { type: 'audio/mp3' }));
 
-    statusDiv.innerHTML = `Audio extracted successfully. Download: <a href="${audioUrl}" download="${audioFileName}">Download Audio</a>`;
+    statusDiv.innerHTML = `Audio extracted successfully. Download: <a href="${audioUrl}" download="extracted_audio.mp3">Download Audio</a>`;
   } catch (error) {
     console.error('Error:', error);
-    statusDiv.textContent = 'An error occurred while extracting audio.';
+    statusDiv.innerHTML = `An error occurred while extracting audio:<br>${error.message}`;
   }
 });
-
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
 
 function fetchFile(file) {
   return new Promise((resolve, reject) => {
