@@ -50,7 +50,7 @@ extractButton.addEventListener('click', () => {
   }
 });
 
-function fetchFile(file) {
+async function fetchFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(new Uint8Array(reader.result));
